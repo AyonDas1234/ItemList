@@ -18,9 +18,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.5.0/jszip.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
         <!-- <script src="/WEB Small Projects/Tiffin Item/GeneratePdf.js" ></script> -->
-      <!-- <script src="/WEB Small Projects/Tiffin Item/GeneratePdf.js" ></script> -->
-       <script src="GeneratePdf.js"></script>
-
+      <script src="GeneratePdf.js" ></script>
         <!-- <script src="/WEB Small Projects/Tiffin Item/Index.js" ></script> -->
   <style>
     * {
@@ -398,7 +396,9 @@
 
 
     /* --------------modal-------- */
-   .delete-modal {
+    .delete-modal,.deleteall-modal,.warning-modal
+   
+   {
        position: fixed;
        top: 0; left: 0;
        width: 100%; height: 100%;
@@ -411,7 +411,7 @@
 
 }
 
-.delete-modal-content {
+.delete-modal-content,.deleteall-modal-content,.warning-modal-content {
   background: #fff;
   width: 400px;  
   max-width: 90%;
@@ -423,14 +423,17 @@
   transform: scale(0.9);
 }
 
-.delete-modal-content h2 {
+.delete-modal-content h2,
+.deleteall-modal-content h2,
+.warning-modal-content h2 {
   font-size: 22px;
   margin-bottom: 10px;
   color: #2c3e50;
   text-align: center;
 }
 
-.delete-modal-content p {
+.delete-modal-content p,
+.deleteall-modal-content p {
   font-size: 16px;
   color: #555;
   margin-bottom: 25px;
@@ -453,28 +456,66 @@
   font-weight: 500;
 }
 
-.btn-cancel {
+.btn-cancel,.altdelt-btn-cancel {
   background: #ecf0f1;
   color: #2c3e50;
 }
-.btn-cancel:hover {
+.btn-cancel,.altdelt-btn-cancel:hover {
   background: #d0d7de;
 }
 
-.btn-delete {
+.btn-delete,.alldlt-btn-delete {
   background: #e74c3c;
   color: white;
 }
-.btn-delete:hover {
+.btn-delete,.alldlt-btn-delete:hover {
   background: #c0392b;
 }
 
+.ok-btn {
+  background: rgb(98, 78, 40);
+  color: #ece6e1;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease
+}
+.ok-btn:hover {
+  background: #c0392b;  
+  transform: scale(1.05);
+}
+.warning-icon {
+    font-size: 60px;
+    color: #e67e22;
+    margin-bottom: 15px;
+    transition: transform 0.3s ease, color 0.3s ease; 
+}
+.warning-icon:hover {
+    transform: scale(1.2);   
+    color: red;              
+}
 /* Popup Animation */
 @keyframes pop {
   0% { transform: scale(0.7); opacity: 0; }
   100% { transform: scale(1); opacity: 1; }
 }
 
+/* deleteall-modal start   */
+
+ 
+
+.close-icon i:hover {
+    color: red;
+}
+.close-icon i {
+  font-size: 40px;     
+  color: #e74c3c;     
+}
+/* deleteall-modal end   */
+
+
+/* circle icon start */
 
 .wrap {
       height: 300px;
@@ -612,8 +653,38 @@
 
 </div>
 
+<!-- delete all modal -->
 
+<div id="deleteall-modal" class="deleteall-modal">
+    <div class="deleteall-modal-content">
+        <!-- Close Icon -->
+        <span class="close-icon"><i class="fa-solid fa-trash"></i>
+        </span>
 
+        <h2>Are You Sure?</h2>
+        <p>This Action cannot be undone.</p>
+        <div class="modal-buttons">
+            <button class="btn alldlt-btn-delete" onclick="deleteYes()">Yes</button>
+            <button class="btn altdelt-btn-cancel" onclick="cancelyes()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<!-- warning modal -->
+<div id="warning-modal" class="warning-modal">
+    <div class="warning-modal-content">
+       
+        <span class="warning-icon">       
+             <i class="fa-solid fa-triangle-exclamation warning-icon"></i>
+
+        </span>
+
+        <h2>Please give item Name</h2>
+        <div class="modal-buttons">
+            <button class="btn ok-btn" >Ok</button>
+        </div>
+    </div>
+</div>
 
 
 <!-- <div class="wrap">
@@ -688,10 +759,20 @@
 
 
     //checking 
-    // if(!taskValue){
-    //     alert("pleaser add item");
-    //     return true;
-    // }
+    if(!taskValue){
+      // alert("call");
+      handleWarning();
+        // alert("pleaser add item");
+        
+      }
+      async function handleWarning() {
+        var warningmessage  = await warningFun();
+        if(warningmessage==true){
+        inputBox.focus();
+          return true;
+        }
+        
+      }  
 
     //  if(taskValue && !Amount){
     //     alert("pleaser add amount ");
@@ -727,7 +808,7 @@
           <td><input type="text" id="task-name" class="task-name" value="${taskValue}" readonly></td>
           <td><input type="text"  id="Amt" class="task-amount" value="${Amount}" readonly></td>
           <td><input type="text"  id="created-date"  value="${dateValue}" readonly></td>
-          <td><button class="edit-btn"><i class="fa-solid fa-pen-to-square"></i><span class="edit-btnCopy">Edit</span></button></td>
+          <td><button class="edit-btn" onclick="editTask(this,'edit')"><i class="fa-solid fa-pen-to-square"></i><span class="edit-btnCopy">Edit</span></button></td>
           <td><button class="delete" onclick="deleteTask(this,'delete')"><i class="fa-solid fa-trash"></i><span>Delete</span></button></td>
       `;
 
@@ -796,13 +877,21 @@
 
 
 
-    //for edit list
 
-      let Editbtn = tr.querySelector(".edit-btn");//current tr
-    //   let editText = editBtn.querySelector("span");
-    var EditbtnText=tr.querySelector(".edit-btnCopy");//current tr
 
-      Editbtn.addEventListener("click", function () {
+}
+//for edit list
+//   let editText = editBtn.querySelector("span");
+ function editTask(btn,purpose) {
+  console.log("edit call")
+  // var deletebtn=tr.querySelector(".delete");
+  var tr = btn.closest("tr");//current tr
+  let Editbtn = tr.querySelector(".edit-btn");//current tr
+  var EditbtnText=tr.querySelector(".edit-btnCopy");//current tr
+
+
+// var deleterow = await confirmDelete();
+    //  async function deleteTask(btn,purpose) {
         //   let nameInput = tr.children[1].querySelector("input");
         //   let amtInput = tr.children[2].querySelector("input");
           var input1=tr.querySelector("#task-name");
@@ -813,6 +902,7 @@
               input2.removeAttribute("readonly");
 
               BeforeChangeAmt=input2.value;
+              BeforeChangeItemName=input1.value;
 
               input1.focus();
               input2.focus();
@@ -852,12 +942,44 @@
 
         }
         TotalAmtShow();
-        saveTask();
-         SetItemNameDropDown();
+        if(purpose=="edit"){
+
+          saveTask();
+           SetItemNameDropDown();
+        }else if(purpose=="filter"){
+         var SaveTasks=JSON.parse(localStorage.getItem("ItemDetails"));
+        
+        var ValueOfInput1=tr.querySelector("#task-name").value;
+        var ValueOfInput2=tr.querySelector("#Amt").value;
+        var ValueOfInput3=tr.querySelector("#created-date").value;
+         var updatedData = SaveTasks.map(item => {
+          // console.log(" item.TaskName:-", item.TaskName+"  "+"item.Amt:-",item.Amt+"  "+"item.CreateDate:-",item.CreateDate);
+          // console.log(" input1:-",input1.value+"  "+"input2:-",input2.value+"  "+"ValueOfInput3:-",ValueOfInput3+"\n");
+
+                if (
+                    item.TaskName === BeforeChangeItemName &&
+                    item.Amt === BeforeChangeAmt &&
+                    item.CreateDate === ValueOfInput3
+                ) {
+                    // alert("call")
+                    return {
+                        ...item,
+                         Amt: ValueOfInput2,   
+                        TaskName: ValueOfInput1, 
+                        CreateDate: ValueOfInput3
+                    };
+                }
+                return item; 
+          });
+        console.log("updatedData:-",updatedData);
+        // taskArr.push(ValidRow);
+        localStorage.setItem("ItemDetails",JSON.stringify(updatedData));
+
+   
+        }
         AfterChangeAmt=0;
 
-      });
-    }
+      };
 
 
     //for delete list
@@ -938,6 +1060,8 @@ console.log("deleterow:-",deleterow);
 
     var AfterChangeAmt=0;
 var BeforeChangeAmt=0;
+var BeforeChangeItemName=0;
+
        function TotalAmtShow(){
             //  var totalAmt=document.querySelector(".total-amt");
             var totalAmt=document.querySelector("#total");
@@ -949,14 +1073,22 @@ var BeforeChangeAmt=0;
 
 
 async function DeleteAll(){
+var deleteAllrow = await confirmDeleteAll();
+  
+if(deleteAllrow==true){
+
+  var AllTask=document.querySelectorAll(".tr");
+  AllTask.forEach(task=>{
+      task.remove();
+  });
+  TotalAmt=0;
+  TotalAmtShow();
+  saveTask();
+}else if(deleteAllrow==false){
+            console.log("not deleting..");
+
+}
    
-       var AllTask=document.querySelectorAll(".tr");
-       AllTask.forEach(task=>{
-           task.remove();
-       });
-       TotalAmt=0;
-       TotalAmtShow();
-       saveTask();
    
 
 
@@ -1216,7 +1348,7 @@ function SearchFun(){
            <td><input type="text" id="task-name" class="task-name" value="${item.TaskName}" readonly></td>
            <td><input type="text"  id="Amt" class="task-amount" value="${item.Amt}" readonly></td>
            <td><input type="text"  id="created-date"  value="${item.CreateDate}" readonly></td>
-           <td><button class="edit-btn"><i class="fa-solid fa-pen-to-square"></i><span class="edit-btnCopy">Edit</span></button></td>
+           <td><button class="edit-btn" onclick="editTask(this,'filter')"><i class="fa-solid fa-pen-to-square"></i><span class="edit-btnCopy">Edit</span></button></td>
            <td><button class="delete" onclick="deleteTask(this,'filter')"><i class="fa-solid fa-trash"></i><span>Delete</span></button></td>
        `;
        tbody.appendChild(tr);
@@ -1260,8 +1392,58 @@ function confirmDelete(){
 
 }
     
- 
+ function confirmDeleteAll(){
+    return new Promise((resolve)=>{
 
+        var deleteAllModal=document.querySelector(".deleteall-modal");
+        deleteAllModal.style.display="block";
+        deleteAllModal.style.display = "flex";
+
+        var deleteBtn=document.querySelector(".alldlt-btn-delete");
+        var cancelBtn=document.querySelector(".altdelt-btn-cancel");
+         deleteBtn.onclick = null;
+        cancelBtn.onclick = null;
+
+        deleteBtn.onclick=()=>{
+            
+            deleteAllModal.style.display="none";
+            resolve(true);
+
+        };
+
+        cancelBtn.onclick=()=>{
+            deleteAllModal.style.display="none";
+            resolve(false);
+
+        };
+
+    });
+
+}
+  
+ function warningFun(){
+    return new Promise((resolve)=>{
+
+        var WarningModal=document.querySelector(".warning-modal");
+        WarningModal.style.display="block";
+        WarningModal.style.display = "flex";
+
+        var OkBtn=document.querySelector(".ok-btn");
+         OkBtn.onclick = null;
+
+        OkBtn.onclick=()=>{
+            
+            WarningModal.style.display="none";
+            resolve(true);
+
+        };
+
+       
+
+    });
+
+}
+  
 
 console.log("screen height:-",window.innerHeight);
   </script>
