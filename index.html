@@ -396,7 +396,8 @@
 
 
     /* --------------modal-------- */
-    .delete-modal,.deleteall-modal,.warning-modal
+    .delete-modal,.deleteall-modal,.warning-modal,
+    .success-modal
    
    {
        position: fixed;
@@ -411,7 +412,7 @@
 
 }
 
-.delete-modal-content,.deleteall-modal-content,.warning-modal-content {
+.delete-modal-content,.deleteall-modal-content,.warning-modal-content,.success-modal-content {
   background: #fff;
   width: 400px;  
   max-width: 90%;
@@ -425,7 +426,8 @@
 
 .delete-modal-content h2,
 .deleteall-modal-content h2,
-.warning-modal-content h2 {
+.warning-modal-content h2,
+.success-modal-content h2 {
   font-size: 22px;
   margin-bottom: 10px;
   color: #2c3e50;
@@ -473,18 +475,24 @@
 }
 
 .ok-btn {
-  background: rgb(98, 78, 40);
-  color: #ece6e1;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: #fff;
   border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
+  padding: 10px 20px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.2s ease
+  font-weight: bold;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
 }
 .ok-btn:hover {
-  background: #c0392b;  
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #e67e22, #f39c12);
+  transform: scale(1.1);
+  /* box-shadow: 0 4px 12px rgba(243,156,18,0.6); */
 }
+
+
+
 .warning-icon {
     font-size: 60px;
     color: #e67e22;
@@ -511,6 +519,33 @@
 .close-icon i {
   font-size: 40px;     
   color: #e74c3c;     
+}
+.success-icon {
+  font-size: 50px;
+  color: #27ae60;
+  margin-bottom: 12px;
+  display: inline-block;
+}
+.success-btn{
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+.success-btn:hover {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+}
+
+/* Animation */
+@keyframes popup {
+  from { transform: scale(0.7); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
 }
 /* deleteall-modal end   */
 
@@ -686,6 +721,22 @@
     </div>
 </div>
 
+<!-- Success Modal -->
+<div id="success-modal" class="success-modal">
+    <div class="success-modal-content">
+       
+        <span class="success-icon">       
+             <i class="fa-solid fa-circle-check"></i>
+        </span>
+
+        <h2>Item Edited Successfully!</h2>
+        <div class="modal-buttons">
+            <button class="btn success-btn">Ok</button>
+        </div>
+    </div>
+</div>
+
+
 
 <!-- <div class="wrap">
   <div class="quart"><i class="fa-solid fa-file-pdf" ></i></div>
@@ -739,7 +790,7 @@
           SetItemNameDropDown();
     }
   
-    taskbtn.addEventListener("click",function(){
+    taskbtn.addEventListener("click",async function(){
         // console.log("call")
        var taskValue=inputBox.value;
       var  Amount=inputBoxAmt.value;
@@ -759,20 +810,28 @@
 
 
     //checking 
-    if(!taskValue){
+    if(!taskValue && !Amount){
       // alert("call");
-      handleWarning();
+      // handleWarning();
         // alert("pleaser add item");
         
+        // async function handleWarning() {
+          var warningmessage  = await warningFun("Please enter item name!");
+          if(warningmessage==true){
+          inputBox.focus();
+            return true;
+          }
+          
+        // }  
       }
-      async function handleWarning() {
-        var warningmessage  = await warningFun();
-        if(warningmessage==true){
-        inputBox.focus();
-          return true;
-        }
-        
-      }  
+      if (!Amount) {
+    let warningmessage = await warningFun("Please enter amount!");
+    if (warningmessage) {
+      inputBoxAmt.focus();
+    }
+    return; 
+  }
+
 
     //  if(taskValue && !Amount){
     //     alert("pleaser add amount ");
@@ -914,6 +973,7 @@
           } else {
               input1.setAttribute("readonly", true);
               input2.setAttribute("readonly", true);
+              sucessfun();
 
               EditbtnText.textContent = "Edit";
 
@@ -1219,23 +1279,27 @@ var ItemNameAndAmountArr=[];
 function SetItemNameDropDown(){
   var itemdropdownSelect=document.querySelector("#Item-Name-DropDown");
   itemdropdownSelect.innerHTML= "<option value=''>Select Item Names</option>";
-  var AllTaskList=document.querySelectorAll(".tr");
+  // var AllTaskList=document.querySelectorAll(".tr");
+  var SaveTasks=JSON.parse(localStorage.getItem("ItemDetails"));
+
   var ItemNameArr=[];
-  AllTaskList.forEach(Task=>{
+  SaveTasks.forEach(Task=>{
     
-    var ItemName=Task.querySelector(".task-name");
+    // var ItemName=Task.querySelector(".task-name");
+    var ItemName=Task.TaskName;
+
    const option = document.createElement("option");
-   option.value = ItemName.value ;
-    option.textContent = ItemName.value;
+   option.value = ItemName;
+    option.textContent = ItemName;
     option.style.color="black";
-    if(!ItemNameArr.includes( ItemName.value)){
-      ItemNameArr.push(ItemName.value);
+    if(!ItemNameArr.includes( ItemName)){
+      ItemNameArr.push(ItemName);
       itemdropdownSelect.appendChild(option);
     }
 
     var ObjINAmt={};
     ObjINAmt={
-      ItemName: ItemName.value,
+      ItemName: ItemName,
       Amount:0,
     }
     ItemNameAndAmountArr.push(ObjINAmt);
@@ -1254,20 +1318,24 @@ var A=0;
   var amountdropdownSelect=document.querySelector("#Amount-DropDown");
   amountdropdownSelect.innerHTML= "<option value=''>Select Amount</option>";
 
-  var AllTaskList=document.querySelectorAll(".tr");
+  // var AllTaskList=document.querySelectorAll(".tr");
+  var SaveTasks=JSON.parse(localStorage.getItem("ItemDetails"));
+
   
-  AllTaskList.forEach(Task=>{
-    var Amount=Task.querySelector(".task-amount");
+  SaveTasks.forEach(Task=>{
+    // var Amount=Task.querySelector(".task-amount");
+    var Amount=Task.Amt;
+
    const option = document.createElement("option");
-   option.value = Amount.value ;
-    option.textContent = Amount.value;
+   option.value = Amount ;
+    option.textContent = Amount;
     option.style.color="black";
     
       amountdropdownSelect.appendChild(option);
     
     // option.style.backgroundColor="#f0f8ff"; 
 
-    ItemNameAndAmountArr[A].Amount= Amount.value;
+    ItemNameAndAmountArr[A].Amount= Amount;
     A++;  
   });
 }
@@ -1277,14 +1345,16 @@ function selectItemName(){
     var itemdropdownSelect=document.querySelector("#Item-Name-DropDown");
       var amountdropdownSelect=document.querySelector("#Amount-DropDown");
       amountdropdownSelect.innerHTML= "<option value=''>Select Amount</option>";
-      // console.log("itemdropdownSelect.value:-",itemdropdownSelect.value);
-      var AllAmounts=ItemNameAndAmountArr.filter(index=>{return index.ItemName==itemdropdownSelect.value});
+      console.log("itemdropdownSelect.value:-",itemdropdownSelect.value); 
+      var SaveTasks=JSON.parse(localStorage.getItem("ItemDetails"));
+
+      var AllAmounts=SaveTasks.filter(index=>{return index.TaskName==itemdropdownSelect.value});
       console.log("AllAmounts:-",AllAmounts);
       
       AllAmounts.forEach(index=>{
         const option = document.createElement("option");
-       option.value = index.Amount ;
-       option.textContent = index.Amount;
+       option.value = index.Amt ;
+       option.textContent = index.Amt;
        option.style.color="black";
        console.log("option.textContent:-",option.textContent);
        amountdropdownSelect.appendChild(option);
@@ -1421,12 +1491,13 @@ function confirmDelete(){
 
 }
   
- function warningFun(){
+ function warningFun(msg){
     return new Promise((resolve)=>{
 
         var WarningModal=document.querySelector(".warning-modal");
         WarningModal.style.display="block";
         WarningModal.style.display = "flex";
+        WarningModal.querySelector("h2").textContent=msg;
 
         var OkBtn=document.querySelector(".ok-btn");
          OkBtn.onclick = null;
@@ -1444,6 +1515,29 @@ function confirmDelete(){
 
 }
   
+
+function sucessfun(){
+  return new Promise((resolve)=>{
+
+        var SucessModal=document.querySelector(".success-modal");
+        SucessModal.style.display="block";
+        SucessModal.style.display = "flex";
+        // SucessModal.querySelector("h2").textContent=msg;
+
+        var SucessBtn=document.querySelector(".success-btn");
+         SucessBtn.onclick = null;
+
+          SucessBtn.onclick=()=>{
+            
+            SucessModal.style.display="none";
+            resolve(true);
+
+        };
+
+       
+
+    });
+}
 
 console.log("screen height:-",window.innerHeight);
   </script>
